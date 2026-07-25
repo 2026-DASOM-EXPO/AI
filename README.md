@@ -56,6 +56,12 @@ pip install -r requirements.txt
 ```
 
 ### 3. 웹캠 실시간 인식 실행
+> 새 터미널을 열었다면 먼저 가상환경을 다시 활성화해야 합니다. (프롬프트 앞에 `(venv)`가 표시되는지 확인)
+> ```powershell
+> cd C:\EXPO
+> .\venv\Scripts\Activate.ps1
+> ```
+
 ```powershell
 # COCO 80개 클래스 전체 인식
 python scripts\detect_webcam.py
