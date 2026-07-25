@@ -1,0 +1,11 @@
+path: ./datasets
+train: images/train
+val: images/val
+
+names:
+  0: helmet_worn
+  1: helmet_not_worn
+  2: vest_worn
+  3: vest_not_worn
+  4: belt_worn
+  5: belt_not_worn

@@ -1,0 +1,18 @@
+# Virtual environment
+venv/
+
+# Python
+__pycache__/
+*.pyc
+
+# Ultralytics training/inference outputs
+runs/
+
+# Raw dataset images (keep folder structure via .gitkeep)
+datasets/raw_images/*.jpg
+datasets/raw_images/*.png
+!datasets/raw_images/.gitkeep
+
+# OS / editor
+.vscode/
+.DS_Store
