@@ -64,20 +64,20 @@ pip install -r requirements.txt
 > ```
 
 ```powershell
-# COCO 80개 클래스 전체 인식
+# 기본값: 커스텀 안전장비 모델(runs/train/safety_equipment-2/weights/best.pt)로 인식
 python scripts\detect_webcam.py
 
-# 사람(person) 클래스만 인식
-python scripts\detect_webcam.py --person-only
-
 # 카메라 인덱스 / confidence threshold 지정
-python scripts\detect_webcam.py --person-only --camera 0 --conf 0.5
+python scripts\detect_webcam.py --camera 0 --conf 0.5
+
+# COCO 사전학습 모델(80개 클래스)로 실행하고 싶을 때
+python scripts\detect_webcam.py --model models\yolov8n.pt
 ```
 종료: 웹캠 창이 활성화된 상태에서 `q` 키 입력
 
 ## 사용 모델
-- 현재: `yolov8n.pt` (COCO 사전학습, person 클래스 포함 80개 클래스)
-- 커스텀 학습 결과: `runs/train/safety_equipment-2/weights/best.pt` (안전장비 착용 여부 6개 클래스, 성능은 아래 참고)
+- 기본값(`detect_webcam.py` 기본 실행): `runs/train/safety_equipment-2/weights/best.pt` (안전장비 착용 여부 6개 클래스, 성능은 아래 참고)
+- `--model models\yolov8n.pt` 지정 시: COCO 사전학습 모델 (person 클래스 포함 80개 클래스)
 
 ## 학습 결과 및 한계점
 

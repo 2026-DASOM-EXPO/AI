@@ -6,7 +6,15 @@ __pycache__/
 *.pyc
 
 # Ultralytics training/inference outputs
-runs/
+# Exception: keep the deployed custom safety-equipment weights (used as default model in detect_webcam.py)
+runs/*
+!runs/train
+runs/train/*
+!runs/train/safety_equipment-2
+runs/train/safety_equipment-2/*
+!runs/train/safety_equipment-2/weights
+runs/train/safety_equipment-2/weights/*
+!runs/train/safety_equipment-2/weights/best.pt
 
 # Raw dataset images (keep folder structure via .gitkeep)
 datasets/raw_images/*.jpg

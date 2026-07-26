@@ -1,11 +1,11 @@
 """
-YOLOv8n 웹캠 실시간 객체 인식 스크립트
+안전장비 착용 인식 웹캠 실시간 객체 인식 스크립트
 
 사용 예시:
-    python scripts\\detect_webcam.py                  # COCO 80개 클래스 전체 인식
-    python scripts\\detect_webcam.py --person-only     # 사람(person) 클래스만 인식
+    python scripts\\detect_webcam.py                  # 커스텀 안전장비 모델로 인식
     python scripts\\detect_webcam.py --camera 1        # 카메라 인덱스 지정
     python scripts\\detect_webcam.py --conf 0.5        # confidence threshold 지정
+    python scripts\\detect_webcam.py --model models\\yolov8n.pt  # COCO 사전학습 모델 사용
 
 종료: 웹캠 창이 활성화된 상태에서 'q' 키
 """
@@ -16,19 +16,12 @@ from pathlib import Path
 import cv2
 from ultralytics import YOLO
 
-PERSON_CLASS_ID = 0  # COCO 데이터셋 기준 'person' 클래스 ID
-
 SCRIPT_DIR = Path(__file__).resolve().parent
-DEFAULT_MODEL_PATH = SCRIPT_DIR.parent / "models" / "yolov8n.pt"
+DEFAULT_MODEL_PATH = SCRIPT_DIR.parent / "runs" / "train" / "safety_equipment-2" / "weights" / "best.pt"
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="YOLOv8n 웹캠 실시간 객체 인식")
-    parser.add_argument(
-        "--person-only",
-        action="store_true",
-        help="사람(person) 클래스만 박스로 표시",
-    )
+    parser = argparse.ArgumentParser(description="안전장비 착용 웹캠 실시간 객체 인식")
     parser.add_argument(
         "--camera",
         type=int,
@@ -54,7 +47,6 @@ def main():
     args = parse_args()
 
     model = YOLO(args.model)
-    class_filter = [PERSON_CLASS_ID] if args.person_only else None
 
     cap = cv2.VideoCapture(args.camera)
     if not cap.isOpened():
@@ -63,7 +55,7 @@ def main():
             "다른 프로그램이 카메라를 사용 중이거나 --camera 인덱스가 잘못되었을 수 있습니다."
         )
 
-    window_title = "YOLOv8n Webcam - person only" if args.person_only else "YOLOv8n Webcam - all classes"
+    window_title = f"Webcam - {Path(args.model).stem}"
 
     try:
         while True:
@@ -75,7 +67,6 @@ def main():
             results = model.predict(
                 source=frame,
                 conf=args.conf,
-                classes=class_filter,
                 verbose=False,
             )
 
