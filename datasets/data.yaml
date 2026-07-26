@@ -1,11 +1,13 @@
-path: ./datasets
-train: images/train
-val: images/val
+train: train/images
+val: valid/images
+test: test/images
 
-names:
-  0: helmet_worn
-  1: helmet_not_worn
-  2: vest_worn
-  3: vest_not_worn
-  4: belt_worn
-  5: belt_not_worn
+nc: 6
+names: ['helmet_not_worn', 'helmet_worn', 'shoe_not_worn', 'shoe_worn', 'vest_not_worn', 'vest_worn']
+
+roboflow:
+  workspace: s-workspace-i7sty
+  project: expo_2026
+  version: 1
+  license: CC BY 4.0
+  url: https://universe.roboflow.com/s-workspace-i7sty/expo_2026/dataset/1

@@ -13,6 +13,15 @@ datasets/raw_images/*.jpg
 datasets/raw_images/*.png
 !datasets/raw_images/.gitkeep
 
+# Raw source videos (large, contains identifiable footage of participants)
+datasets/raw_videos/
+
+# Ultralytics label cache (regenerated automatically, machine-specific)
+*.cache
+
+# Stray weight files downloaded by ultralytics checks (not part of this project)
+/yolo26n.pt
+
 # OS / editor
 .vscode/
 .DS_Store
