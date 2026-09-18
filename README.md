@@ -16,28 +16,36 @@
 - [ ] 추가 촬영 및 재학습 (중간점검 이후 진행 예정)
 
 ## 향후 계획
-1. `datasets/raw_images`에 현장 이미지 수집
-2. 안전모/안전조끼/안전벨트 착용·미착용 클래스로 라벨링 (`datasets/labels`)
-3. `datasets/data.yaml` 기준으로 YOLOv8 커스텀 학습 (`yolo train`)
-4. 학습된 커스텀 모델을 `detect_webcam.py`에 연결하여 실시간 안전장비 인식으로 확장
+1. `vest_not_worn` 클래스 표본 보강 (3차 학습 기준 mAP50 0.281로 가장 취약, 아래 [3차 학습](#3차-학습-외부-roboflow-공개-ppe-데이터셋-병합) 참고)
+2. 촬영 인원 확대 후 추가 촬영 (`datasets/raw_images`) 및 재학습
+3. 실제 배포 환경(웹캠 등)과 유사한 조건의 이미지 보강
 
 ## 폴더 구조
 ```
 EXPO/
 ├── venv/                  # 가상환경 (git 제외)
 ├── scripts/
-│   └── detect_webcam.py   # 웹캠 실시간 인식 스크립트
+│   ├── detect_webcam.py           # 웹캠 실시간 인식 스크립트
+│   ├── train_custom.py            # 커스텀 YOLOv8 학습 스크립트
+│   ├── merge_external_datasets.py # 외부 Roboflow PPE 데이터셋 병합 스크립트
+│   ├── resplit_by_person.py       # person 단위 train/valid/test 재분리
+│   └── extract_frames.py          # 영상에서 프레임 추출
 ├── models/
-│   └── yolov8n.pt          # YOLOv8n 사전학습 가중치
+│   └── yolov8n.pt          # YOLOv8n 사전학습 가중치 (COCO)
 ├── datasets/
-│   ├── raw_images/        # 원본 이미지 (git 제외)
-│   ├── labels/            # 라벨 파일
-│   ├── images/train, val/ # 학습/검증 이미지
-│   └── data.yaml          # 커스텀 학습용 데이터셋 정의
-├── runs/                  # 학습/추론 결과 (git 제외)
+│   ├── raw_images/        # 원본 촬영 이미지 (git 제외)
+│   ├── raw_videos/        # 원본 촬영 영상 (git 제외)
+│   ├── external/          # 외부 Roboflow 데이터셋 다운로드 스테이징 (git 제외, merge 스크립트가 소비)
+│   ├── train/, valid/, test/  # 실제 학습에 쓰이는 images/labels (용량 문제로 git 제외, 로컬에만 존재)
+│   └── data.yaml          # 커스텀 학습용 데이터셋 정의 (6클래스)
+├── runs/
+│   └── train/safety_equipment-3/  # 최종(3차) 학습 결과 — weights/best.pt, results.png, confusion_matrix.png만 git 추적, 나머지는 git 제외
 ├── requirements.txt
 └── .gitignore
 ```
+> ⚠️ `datasets/train|valid|test`는 용량(약 1.5GB) 문제로 git에 올리지 않습니다. 저장소를 새로 clone하면
+> 웹캠 인식(`detect_webcam.py`)은 바로 되지만, 재학습(`train_custom.py`)을 하려면 데이터셋을 별도로 준비해야 합니다
+> (원본 Roboflow 프로젝트 `datasets/data.yaml`의 `roboflow.url` + 아래 3차 학습에서 쓴 외부 데이터셋 2종).
 
 ## 설치 및 실행 방법
 
@@ -56,6 +64,12 @@ python -m venv venv
 ```powershell
 pip install -r requirements.txt
 ```
+> `requirements.txt`의 `torch`/`torchvision`은 CPU 빌드 기준 버전입니다. 재학습(`train_custom.py`)을
+> GPU(CUDA)로 돌리고 싶다면, 위 설치 후 아래처럼 CUDA 빌드로 덮어 설치하세요 (이 프로젝트는 CUDA 12.4 기준으로 검증됨):
+> ```powershell
+> pip install torch torchvision --index-url https://download.pytorch.org/whl/cu124
+> ```
+> GPU 없이 CPU로만 돌려도 웹캠 인식(`detect_webcam.py`)은 정상 동작합니다 (속도만 느려짐).
 
 ### 3. 웹캠 실시간 인식 실행
 > 새 터미널을 열었다면 먼저 가상환경을 다시 활성화해야 합니다. (프롬프트 앞에 `(venv)`가 표시되는지 확인)
@@ -81,6 +95,9 @@ python scripts\detect_webcam.py --model models\yolov8n.pt
 - `--model models\yolov8n.pt` 지정 시: COCO 사전학습 모델 (person 클래스 포함 80개 클래스)
 
 ## 학습 결과 및 한계점
+> 1차·2차 학습 가중치는 저장소 용량 정리를 위해 삭제되었습니다 (1차는 처음부터 git 미추적, 2차는 `git rm`으로 추적 해제).
+> **3차(`safety_equipment-3`)가 1,105장을 포함한 전체 병합 데이터(6,410장)로 COCO 베이스부터 재학습된 최종 모델이며,
+> 정보 손실 없이 그 이전 데이터를 포함하므로 1·2차를 대체합니다.** 아래 1·2차 결과는 진행 과정 기록용으로만 남겨둠.
 
 ### 1차 학습 결과 (초기)
 - mAP50: 0.974 (validation set)
