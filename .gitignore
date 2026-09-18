@@ -6,15 +6,23 @@ __pycache__/
 *.pyc
 
 # Ultralytics training/inference outputs
-# Exception: keep the deployed custom safety-equipment weights (used as default model in detect_webcam.py)
+# Exception: keep the deployed custom safety-equipment weights + key result plots
+# (used as default model in detect_webcam.py / cited as evidence in README)
 runs/*
 !runs/train
 runs/train/*
-!runs/train/safety_equipment-2
-runs/train/safety_equipment-2/*
-!runs/train/safety_equipment-2/weights
-runs/train/safety_equipment-2/weights/*
-!runs/train/safety_equipment-2/weights/best.pt
+!runs/train/safety_equipment-3
+runs/train/safety_equipment-3/*
+!runs/train/safety_equipment-3/weights
+!runs/train/safety_equipment-3/results.png
+!runs/train/safety_equipment-3/confusion_matrix.png
+runs/train/safety_equipment-3/weights/*
+!runs/train/safety_equipment-3/weights/best.pt
+
+# Dataset images/labels - too large for git (merged w/ external PPE data), kept local only
+datasets/train/
+datasets/valid/
+datasets/test/
 
 # Raw dataset images (keep folder structure via .gitkeep)
 datasets/raw_images/*.jpg
@@ -23,6 +31,9 @@ datasets/raw_images/*.png
 
 # Raw source videos (large, contains identifiable footage of participants)
 datasets/raw_videos/
+
+# Staging area for downloaded external datasets (already merged into datasets/train|valid|test)
+datasets/external/
 
 # Ultralytics label cache (regenerated automatically, machine-specific)
 *.cache

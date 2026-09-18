@@ -12,6 +12,7 @@
 - [x] 웹캠 실시간 객체 인식 스크립트(`scripts/detect_webcam.py`) 작성 및 사람(person) 인식 테스트 완료
 - [x] 안전장비(헬멧/조끼/신발) 착용 여부 데이터셋 수집 및 라벨링 (Roboflow, 1676장)
 - [x] 커스텀 모델 1차 학습 완료 — 단, 자체 검증에서 한계점 발견 (아래 [학습 결과 및 한계점](#학습-결과-및-한계점) 참고)
+- [x] Roboflow Universe 공개 PPE 데이터셋 2종을 클래스 매핑 후 병합하여 재학습 (특히 취약했던 `shoe_worn`/`shoe_not_worn` 보강)
 - [ ] 추가 촬영 및 재학습 (중간점검 이후 진행 예정)
 
 ## 향후 계획
@@ -64,7 +65,7 @@ pip install -r requirements.txt
 > ```
 
 ```powershell
-# 기본값: 커스텀 안전장비 모델(runs/train/safety_equipment-2/weights/best.pt)로 인식
+# 기본값: 커스텀 안전장비 모델(runs/train/safety_equipment-3/weights/best.pt)로 인식
 python scripts\detect_webcam.py
 
 # 카메라 인덱스 / confidence threshold 지정
@@ -76,7 +77,7 @@ python scripts\detect_webcam.py --model models\yolov8n.pt
 종료: 웹캠 창이 활성화된 상태에서 `q` 키 입력
 
 ## 사용 모델
-- 기본값(`detect_webcam.py` 기본 실행): `runs/train/safety_equipment-2/weights/best.pt` (안전장비 착용 여부 6개 클래스, 성능은 아래 참고)
+- 기본값(`detect_webcam.py` 기본 실행): `runs/train/safety_equipment-3/weights/best.pt` (안전장비 착용 여부 6개 클래스, 성능은 아래 참고)
 - `--model models\yolov8n.pt` 지정 시: COCO 사전학습 모델 (person 클래스 포함 80개 클래스)
 
 ## 학습 결과 및 한계점
@@ -117,3 +118,30 @@ python scripts\detect_webcam.py --model models\yolov8n.pt
 2. `shoe_worn` / `shoe_not_worn` 두 클래스 모두 다양한 신발·각도로 집중 보강 촬영
 3. 실제 배포 환경(웹캠 등)과 유사한 조건으로 촬영 추가
 4. person 단위 데이터 분리(`scripts/resplit_by_person.py`)를 유지해 신뢰성 있는 검증 지속
+
+### 3차 학습 (외부 Roboflow 공개 PPE 데이터셋 병합)
+
+2차 검증에서 드러난 가장 큰 약점(`shoe_not_worn` 거의 미검출)을 보완하기 위해, Roboflow Universe에서
+우리 클래스 체계와 맞는 공개 데이터셋 2종을 찾아 클래스를 리매핑한 뒤 기존 데이터셋에 병합하여 재학습했다
+(`scripts/merge_external_datasets.py`, `datasets/data.yaml`은 동일한 6클래스 유지).
+
+- **PPE by ryan** (CC BY 4.0, 1,581장): `boots`/`no boots`/`helmet`/`no helmet` → `shoe_worn`/`shoe_not_worn`/`helmet_worn`/`helmet_not_worn`에 매핑. 전처리 단계에서 그레이스케일이 적용된 이미지라 색상 단서는 없지만 형태 학습에는 기여.
+- **PPE by "PPE"** (CC BY 4.0, 2,482장): `Helmet`/`No-Helmet`/`Vest`/`No-vest` → 동일 클래스에 매핑 (컬러 원본, 증강 없음). `Gloves` 등 우리 체계에 없는 클래스는 라벨에서 제거.
+- 매핑 후 남은 라벨이 없는 이미지(장갑/우주복만 라벨링된 경우 등)는 제외.
+- 병합 결과: train 1,105 → **6,410장**, valid 308 → **625장**, test 263 → **544장**.
+
+#### 3차 학습 결과 (test set, `runs/train/safety_equipment-3`)
+| 클래스 | mAP50 | mAP50-95 | 비고 |
+|---|---|---|---|
+| helmet_not_worn | 0.727 | 0.410 | 안정적으로 개선 |
+| helmet_worn | 0.791 | 0.535 | 양호 |
+| shoe_not_worn | **0.387** | 0.255 | 2차 대비 대폭 개선 (0.017~0.029 → 0.387) |
+| shoe_worn | 0.644 | 0.401 | 양호 |
+| vest_not_worn | 0.281 | 0.148 | 여전히 취약 — 외부 데이터에도 vest_not_worn 표본이 적음 |
+| vest_worn | 0.952 | 0.642 | 우수, 일관됨 |
+| **전체 평균** | **0.630** | 0.399 | |
+
+- test set 구성이 이전(person3 단독)과 달리 외부 데이터셋의 다양한 환경 이미지를 포함하므로 절대 수치를
+  1·2차와 단순 비교하기는 어렵지만, 가장 취약했던 `shoe_not_worn`이 실질적으로 개선된 점이 핵심 성과.
+- `vest_not_worn`은 여전히 표본이 적어(외부 데이터셋에도 No-vest 비중이 낮음) 다음 보강 대상으로 남음.
+- 기본 배포 모델을 `runs/train/safety_equipment-3/weights/best.pt`로 교체함.

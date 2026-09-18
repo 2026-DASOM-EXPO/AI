@@ -17,7 +17,7 @@ import cv2
 from ultralytics import YOLO
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-DEFAULT_MODEL_PATH = SCRIPT_DIR.parent / "runs" / "train" / "safety_equipment-2" / "weights" / "best.pt"
+DEFAULT_MODEL_PATH = SCRIPT_DIR.parent / "runs" / "train" / "safety_equipment-3" / "weights" / "best.pt"
 
 
 def parse_args():
