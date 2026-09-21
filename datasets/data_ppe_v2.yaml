@@ -1,0 +1,7 @@
+# 안전모 + 안전벨트(하네스) 4클래스 (scripts/prepare_ppe_v2.py 가 datasets/ppe_v2 에 생성)
+train: ppe_v2/train/images
+val: ppe_v2/valid/images
+test: ppe_v2/test/images
+
+nc: 4
+names: ['helmet_not_worn', 'helmet_worn', 'belt_not_worn', 'belt_worn']

@@ -40,7 +40,34 @@ def parse_args():
         default=str(DEFAULT_MODEL_PATH),
         help=f"모델 가중치 경로 (기본값: {DEFAULT_MODEL_PATH})",
     )
+    parser.add_argument(
+        "--person-model",
+        type=str,
+        default=None,
+        help="지정 시(예: models\\yolov8n.pt) 사람 단위로 안전모/벨트 착용을 판정해 OK/WARNING 표시",
+    )
     return parser.parse_args()
+
+
+# 사람 단위 판정: 사람 박스 안(상체 영역)에 든 장비 박스를 연결하고, 최근 N프레임 다수결로 깜빡임을 줄인다.
+HISTORY = 8
+
+
+def center_in(box, person):
+    cx, cy = (box[0] + box[2]) / 2, (box[1] + box[3]) / 2
+    return person[0] <= cx <= person[2] and person[1] <= cy <= person[3]
+
+
+def judge_people(persons, gear, names):
+    """persons: [(x1,y1,x2,y2)], gear: [(name, box, conf)] -> [{'helmet': bool|None, 'belt': bool|None}]"""
+    out = []
+    for p in persons:
+        state = {}
+        for item in ("helmet", "belt"):
+            cands = [(c, n) for n, b, c in gear if n.startswith(item) and center_in(b, p)]
+            state[item] = max(cands)[1].endswith("_worn") if cands else None
+        out.append(state)
+    return out
 
 
 def main():
@@ -56,6 +83,8 @@ def main():
         )
 
     window_title = f"Webcam - {Path(args.model).stem}"
+    person_model = YOLO(args.person_model) if args.person_model else None
+    history = {}
 
     try:
         while True:
@@ -71,6 +100,27 @@ def main():
             )
 
             annotated = results[0].plot()
+
+            if person_model is not None:
+                r = results[0]
+                gear = [(r.names[int(c)], b.tolist(), float(cf))
+                        for c, b, cf in zip(r.boxes.cls, r.boxes.xyxy, r.boxes.conf)]
+                pr = person_model.track(frame, classes=[0], conf=args.conf, persist=True, verbose=False)[0]
+                if pr.boxes.id is not None:
+                    for pid, pb, st in zip(pr.boxes.id.int().tolist(), pr.boxes.xyxy.tolist(),
+                                           judge_people(pr.boxes.xyxy.tolist(), gear, r.names)):
+                        h = history.setdefault(pid, {"helmet": [], "belt": []})
+                        for k in h:
+                            if st[k] is not None:
+                                h[k] = (h[k] + [st[k]])[-HISTORY:]
+                        # 벨트/안전모가 한 번도 확인 안 됐거나 다수결이 미착용이면 경고 (안전 측 판정)
+                        ok = all(h[k] and sum(h[k]) * 2 > len(h[k]) for k in h)
+                        color = (0, 200, 0) if ok else (0, 0, 255)
+                        x1, y1, x2, y2 = map(int, pb)
+                        cv2.rectangle(annotated, (x1, y1), (x2, y2), color, 3)
+                        label = "OK" if ok else "WARNING"
+                        cv2.putText(annotated, f"#{pid} {label}", (x1, max(y1 - 8, 20)),
+                                    cv2.FONT_HERSHEY_SIMPLEX, 0.8, color, 2)
 
             cv2.imshow(window_title, annotated)
 

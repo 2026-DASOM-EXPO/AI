@@ -38,6 +38,14 @@ SOURCES = [
         # 원본: ['Gloves', 'Helmet', 'No-Helmet', 'No-gloves', 'No-vest', 'Vest']
         "class_map": {1: 1, 2: 0, 4: 4, 5: 5},
     },
+    {
+        "dir": EXTERNAL_DIR / "safe_helmet_vest",
+        "prefix": "ext_safe",
+        # 원본: ['NO_vest_detected', 'No_glasses_detected', 'No_helmet_detected',
+        #        'Safety_glasses_detected', 'Safety_helmet_detected', 'Safety_vest_detected']
+        # 안경 클래스(1, 3)는 우리 체계에 없어 제거. (Public Domain, 9,507장)
+        "class_map": {0: 4, 2: 0, 4: 1, 5: 5},
+    },
 ]
 
 SPLIT_MAP = {"train": "train", "valid": "valid", "test": "test"}

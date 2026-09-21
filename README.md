@@ -162,3 +162,16 @@ python scripts\detect_webcam.py --model models\yolov8n.pt
   1·2차와 단순 비교하기는 어렵지만, 가장 취약했던 `shoe_not_worn`이 실질적으로 개선된 점이 핵심 성과.
 - `vest_not_worn`은 여전히 표본이 적어(외부 데이터셋에도 No-vest 비중이 낮음) 다음 보강 대상으로 남음.
 - 기본 배포 모델을 `runs/train/safety_equipment-3/weights/best.pt`로 교체함.
+
+
+## 안전모 + 안전벨트 4클래스 확장 (v2, 파이프라인 준비 완료 / 재학습 대기)
+기존 6클래스 모델에는 안전벨트가 없어, 안전모+안전벨트 전용 4클래스(`helmet_*`, `belt_*`) 파이프라인을 추가했다.
+**벨트 데이터가 아직 없으므로 학습은 수행하지 않았다** (가중치 미생성).
+
+1. Roboflow Universe 등에서 harness/safety belt 데이터셋(YOLOv8 포맷)을 `datasets/external/`에 받는다.
+2. 데이터 생성 (기존 helmet 라벨 유지 + 벨트 병합):
+   `python scripts\prepare_ppe_v2.py --source datasets\external\harness1:hn1:0=3,1=2`
+3. 학습: `python scripts\train_custom.py --data datasets\data_ppe_v2.yaml --name ppe_v2`
+4. 사람 단위 판정 실행:
+   `python scripts\detect_webcam.py --model runs\train\ppe_v2\weights\best.pt --person-model models\yolov8n.pt`
+   - 사람 박스별로 안전모/벨트 착용을 연결하고 최근 8프레임 다수결로 OK/WARNING 표시 (미확인은 WARNING).
