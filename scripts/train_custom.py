@@ -27,6 +27,7 @@ GPU가 없는 경우 (Google Colab에서 학습하는 방법):
        로컬 EXPO/runs/ 아래로 옮기거나 detect_webcam.py --model 인자로 사용
 """
 
+import argparse
 import sys
 from pathlib import Path
 
@@ -89,6 +90,10 @@ def resolve_device_and_batch() -> tuple[str | int, int]:
         print("[배치 크기] GPU 메모리 사용량에 맞춰 자동 산정 (Ultralytics AutoBatch, batch=-1)\n")
         return 0, -1
 
+    if torch.backends.mps.is_available():
+        print("[MPS 감지] Apple GPU(mps)로 학습합니다. 통합 메모리 부담을 줄이기 위해 batch=8 사용\n")
+        return "mps", 8
+
     print("[GPU 미감지] CUDA를 사용할 수 없어 CPU로 학습합니다. (속도가 매우 느릴 수 있습니다)")
     print("[배치 크기] CPU 환경 기본값 batch=16 사용")
     print("Tip: GPU가 없다면 이 파일 상단 docstring의 Google Colab 안내를 참고하세요.\n")
@@ -96,7 +101,13 @@ def resolve_device_and_batch() -> tuple[str | int, int]:
 
 
 def main() -> None:
-    validate_dataset_paths(DATA_YAML)
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--data", default=str(DATA_YAML), help="data.yaml 경로 (안전모+벨트: datasets/data_ppe_v2.yaml)")
+    ap.add_argument("--name", default="safety_equipment", help="runs/train 하위 결과 폴더명")
+    ap.add_argument("--epochs", type=int, default=100)
+    args = ap.parse_args()
+    data_yaml = Path(args.data).resolve()
+    validate_dataset_paths(data_yaml)
 
     if not BASE_MODEL.exists():
         sys.exit(f"[오류] 사전학습 가중치를 찾을 수 없습니다: {BASE_MODEL}")
@@ -105,13 +116,13 @@ def main() -> None:
 
     model = YOLO(str(BASE_MODEL))
     model.train(
-        data=str(DATA_YAML),
-        epochs=100,
+        data=str(data_yaml),
+        epochs=args.epochs,
         imgsz=640,
         batch=batch,
         device=device,
         project=str(SCRIPT_DIR.parent / "runs" / "train"),
-        name="safety_equipment",
+        name=args.name,
     )
 
 

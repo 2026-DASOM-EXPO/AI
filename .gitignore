@@ -44,3 +44,7 @@ datasets/external/
 # OS / editor
 .vscode/
 .DS_Store
+.env
+
+# 안전모+벨트 v2 생성 데이터셋 (prepare_ppe_v2.py 출력, 재생성 가능)
+datasets/ppe_v2/
