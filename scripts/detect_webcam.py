@@ -5,7 +5,8 @@
     python scripts\\detect_webcam.py                  # 커스텀 안전장비 모델로 인식
     python scripts\\detect_webcam.py --camera 1        # 카메라 인덱스 지정
     python scripts\\detect_webcam.py --conf 0.5        # confidence threshold 지정
-    python scripts\\detect_webcam.py --model models\\yolov8n.pt  # COCO 사전학습 모델 사용
+    python scripts\\detect_webcam.py --model models\\yolov8n.pt --imgsz 640  # COCO 사전학습 모델 사용
+    python scripts\\detect_webcam.py --model runs\\train\\safety_equipment-3\\weights\\best.pt --imgsz 640  # 이전(3차) 모델
 
 종료: 웹캠 창이 활성화된 상태에서 'q' 키
 """
@@ -17,7 +18,9 @@ import cv2
 from ultralytics import YOLO
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-DEFAULT_MODEL_PATH = SCRIPT_DIR.parent / "runs" / "train" / "safety_equipment-3" / "weights" / "best.pt"
+# YOLO11s / imgsz 1280 (v4b). 근거리 성능은 3차(v8n/640)와 동등, 드론 중간거리(test_midrange)는 대폭 개선 — README 참고
+DEFAULT_MODEL_PATH = SCRIPT_DIR.parent / "runs" / "train" / "safety_equipment_v4b_11s_1280" / "weights" / "best.pt"
+DEFAULT_IMGSZ = 1280  # 학습 해상도와 맞춘다 (640으로 넣으면 원거리 헬멧이 다시 뭉개짐)
 
 
 def parse_args():
@@ -39,6 +42,12 @@ def parse_args():
         type=str,
         default=str(DEFAULT_MODEL_PATH),
         help=f"모델 가중치 경로 (기본값: {DEFAULT_MODEL_PATH})",
+    )
+    parser.add_argument(
+        "--imgsz",
+        type=int,
+        default=DEFAULT_IMGSZ,
+        help=f"추론 입력 크기 (기본값: {DEFAULT_IMGSZ}, 3차 모델이나 yolov8n.pt 를 쓸 때는 640 권장)",
     )
     return parser.parse_args()
 
@@ -67,6 +76,7 @@ def main():
             results = model.predict(
                 source=frame,
                 conf=args.conf,
+                imgsz=args.imgsz,
                 verbose=False,
             )
 

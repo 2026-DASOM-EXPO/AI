@@ -1,0 +1,7 @@
+train: v4/train/images
+val: v4/valid/images
+test: v4/test/images
+test_midrange: v4/test_midrange/images
+
+nc: 6
+names: ['helmet_not_worn', 'helmet_worn', 'shoe_not_worn', 'shoe_worn', 'vest_not_worn', 'vest_worn']

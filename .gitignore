@@ -18,11 +18,24 @@ runs/train/safety_equipment-3/*
 !runs/train/safety_equipment-3/confusion_matrix.png
 runs/train/safety_equipment-3/weights/*
 !runs/train/safety_equipment-3/weights/best.pt
+# 4차(v4b, YOLO11s/1280) — 현재 detect_webcam.py 기본 모델
+!runs/train/safety_equipment_v4b_11s_1280
+runs/train/safety_equipment_v4b_11s_1280/*
+!runs/train/safety_equipment_v4b_11s_1280/weights
+!runs/train/safety_equipment_v4b_11s_1280/results.png
+!runs/train/safety_equipment_v4b_11s_1280/confusion_matrix.png
+runs/train/safety_equipment_v4b_11s_1280/weights/*
+!runs/train/safety_equipment_v4b_11s_1280/weights/best.pt
+# 비교 근거 리포트
+!runs/compare_v4.md
+!runs/compare_midrange.md
+!runs/shoe_survey
 
 # Dataset images/labels - too large for git (merged w/ external PPE data), kept local only
 datasets/train/
 datasets/valid/
 datasets/test/
+datasets/v4/
 
 # Raw dataset images (keep folder structure via .gitkeep)
 datasets/raw_images/*.jpg
