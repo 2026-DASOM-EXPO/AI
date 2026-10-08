@@ -79,7 +79,7 @@ class FcLink:
     def _run(self):
         while not self._stop.is_set():
             try:
-                self._periodic(time.time())
+                self._periodic(time.monotonic())
                 msg = self.conn.recv_match(blocking=True, timeout=0.05)
             except Exception as e:  # 시리얼 일시 오류 등
                 self.log.write("rx_error", error=repr(e))
@@ -104,7 +104,7 @@ class FcLink:
         except Exception:
             nbytes = 0
         with self.lock:
-            now0 = time.time()
+            now0 = time.monotonic()
             self._rx_bytes.append((now0, nbytes))
             while self._rx_bytes and now0 - self._rx_bytes[0][0] > RATE_WINDOW_S:
                 self._rx_bytes.popleft()
@@ -114,7 +114,7 @@ class FcLink:
                 self._foreign_seen.add(key)
                 self.log.write("foreign_source_ignored", src=list(key), type=t)
             return
-        now = time.time()
+        now = time.monotonic()
         try:
             self.last_rx_frame = "v2" if msg.get_msgbuf()[0] == 0xFD else "v1"
         except Exception:
@@ -264,7 +264,7 @@ class FcLink:
         with self.lock:
             self._ack_waiters.setdefault(command, []).append((ev, holder))
         ts, tc = self.cfg["target_system"], self.cfg["target_component"]
-        t0 = time.time()
+        t0 = time.monotonic()
         wire = "v1" if self.force_v1 else "v2"
         try:
             if kind == "long":
@@ -281,12 +281,12 @@ class FcLink:
                     lst.remove((ev, holder))
         out = dict(command=command, result=holder.get("result") if got else None,
                    result_code=holder.get("result_code") if got else None,
-                   timeout=not got, elapsed_s=round(time.time() - t0, 3), wire=wire)
+                   timeout=not got, elapsed_s=round(time.monotonic() - t0, 3), wire=wire)
         return out
 
     # ---------- state ----------
     def link_ok(self, now=None):
-        now = time.time() if now is None else now
+        now = time.monotonic() if now is None else now
         return self.hb_time is not None and (now - self.hb_time) <= self.cfg["heartbeat_timeout_s"]
 
     def airborne(self):
@@ -296,7 +296,7 @@ class FcLink:
         return self.mode is not None and self.mode[0] == 4 and self.mode[1] == 3
 
     def rates_hz(self, now=None):
-        now = time.time() if now is None else now
+        now = time.monotonic() if now is None else now
         out = {}
         with self.lock:
             for k, dq in self._rx_times.items():
@@ -311,7 +311,7 @@ class FcLink:
         return self.gpi["alt_amsl"] - self.gpi["alt_rel"]
 
     def snapshot(self):
-        now = time.time()
+        now = time.monotonic()
         with self.lock:
             mode = None
             if self.mode:

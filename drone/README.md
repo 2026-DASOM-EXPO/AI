@@ -100,7 +100,7 @@ dispatch 상태: `idle | moving | arrived | aborted | failed | pilot_override`
 |---|---|
 | `not_pilot_override` | pilot_override 래치 중 |
 | `not_in_progress` | 이미 moving |
-| `link_ok` | 하트비트 1.0 s 초과 끊김 |
+| `link_ok` | 하트비트 1.5 s 초과 끊김 (`heartbeat_timeout_s`, 단조 시계 기준) |
 | `armed` / `in_air` | armed 아님 / EXTENDED_SYS_STATE ≠ IN_AIR |
 | `mode_hold` | 모드가 Hold(main 4, sub 3)가 아님 |
 | `gps_fix` / `gps_sats` / `gps_hdop` | fix<3 / 위성<8 / hdop(eph/100)>2.0 또는 미상 |
@@ -143,7 +143,7 @@ PX4 v1.16.0 소스 확인 결과:
 
 상한(링크의 절반) 2,880 B/s 대비 충분히 작다. 단 PX4는 해당 TELEM 포트의 `MAV_x_MODE` 기본 스트림도 함께 보내므로 실제 총량은 `/status`의 `rx_link.bytes_per_s`, `utilization_pct`로 확인한다. 50%를 넘으면 QGC에서 그 포트의 `MAV_x_MODE`/`MAV_x_RATE`를 조정(서버는 파라미터를 바꾸지 않음).
 
-HEARTBEAT 2 Hz 요청이 PX4에서 반영되는지는 **미검증**. `rx_rates_hz.HEARTBEAT`가 1.0 근처면 1 s 타임아웃과 겹쳐 `link_ok`가 깜빡일 수 있으니 `heartbeat_timeout_s`를 1.5로 올린다.
+HEARTBEAT 2 Hz 요청은 **PX4 v1.16 SITL에서 거절됨**(SET_MESSAGE_INTERVAL → FAILED, 실측 1.02 s 간격). 1.0 s 타임아웃에서는 `link_ok`가 매초 깜빡여서(2분에 127회) 기본값을 1.5 s로 바꿨다(docs/test_report.md 변경 이력 3).
 
 ## 6. 테스트 (PC)
 

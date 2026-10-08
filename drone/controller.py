@@ -37,7 +37,7 @@ class Controller:
     def on_update(self, link, msg_type):
         if msg_type not in (None, "HEARTBEAT", "GLOBAL_POSITION_INT", "EXTENDED_SYS_STATE"):
             return
-        now = time.time()
+        now = time.monotonic()
         with self.lock:
             hold = link.is_hold() if link.mode is not None else None
             if msg_type == "HEARTBEAT" and hold is not None:
@@ -81,7 +81,7 @@ class Controller:
     # ---------- 검증 ----------
     def validate(self, lat, lon, alt_rel):
         L, d = self.link, self.d
-        now = time.time()
+        now = time.monotonic()
         reasons, checks = [], {}
 
         def check(code, ok, **val):
@@ -164,7 +164,7 @@ class Controller:
                     g = self.link.gpi
                     dist = haversine_m(g["lat"], g["lon"], lat, lon)
                     self.target = dict(lat=lat, lon=lon, alt_rel=alt_rel, alt_amsl=alt_amsl)
-                    self.started_at = time.time()
+                    self.started_at = time.monotonic()
                     self.deadline = self.started_at + dist / max(speed, 0.1) * self.d["arrival_timeout_factor"] \
                         + self.d["arrival_timeout_margin_s"]
                     self.arrive_since = None

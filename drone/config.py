@@ -25,7 +25,7 @@ DEFAULTS = {
         "source_component": 191,  # MAV_COMP_ID_ONBOARD_COMPUTER. 255(GCS) 금지
         "target_system": 1,
         "target_component": 1,  # MAV_COMP_ID_AUTOPILOT1. 0 사용 금지
-        "heartbeat_timeout_s": 1.0,
+        "heartbeat_timeout_s": 1.5,  # PX4 v1.16은 HEARTBEAT 주기 변경 요청을 FAILED로 거절(SITL 실측) → 1 Hz 고정
         "proto_probe_timeout_s": 3.0,  # v2 응답 대기 후 v1 폴백
         "ack_timeout_s": 2.0,
         # 요청 주기(Hz). 0 이하 = 요청 안 함

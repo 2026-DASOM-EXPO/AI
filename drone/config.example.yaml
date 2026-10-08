@@ -11,7 +11,7 @@ mavlink:
   source_component: 191      # ONBOARD_COMPUTER. 255(GCS)는 QGC와 충돌하므로 금지
   target_system: 1
   target_component: 1        # AUTOPILOT1. 0 금지
-  heartbeat_timeout_s: 1.0
+  heartbeat_timeout_s: 1.5  # PX4는 HEARTBEAT 1 Hz 고정(SITL: SET_MESSAGE_INTERVAL FAILED). 1.0이면 link_ok가 매초 깜빡임
   proto_probe_timeout_s: 3.0
   ack_timeout_s: 2.0
   stream_rates_hz:

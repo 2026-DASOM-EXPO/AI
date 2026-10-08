@@ -36,7 +36,7 @@
 | A3 | `curl -s http://<jetson>:8100/status` (키 없이) | **401** | |
 | A4 | `curl -s -H "X-API-Key: $KEY" .../status` | `link_ok: true`, `heartbeat_age_s < 1` | |
 | A5 | A4 응답의 `mavlink` | `proto`가 `v2` 또는 `v1` (어느 쪽인지 기록 → 보고) / `last_rx_frame` | proto=____ rx=____ |
-| A6 | `rx_rates_hz` | GLOBAL_POSITION_INT≈5, GPS_RAW_INT≈2, SYS_STATUS≈1, EXTENDED_SYS_STATE≈2, HEARTBEAT≈2(1이면 `heartbeat_timeout_s: 1.5`로) | |
+| A6 | `rx_rates_hz` | GLOBAL_POSITION_INT≈5, GPS_RAW_INT≈2, SYS_STATUS≈1, EXTENDED_SYS_STATE≈2, HEARTBEAT≈1 (PX4가 2 Hz 요청 거절, SITL 실측. `heartbeat_timeout_s` 기본 1.5) | |
 | A7 | `rx_link.utilization_pct` | < 50 | ____% |
 | A8 | `mode`, `armed`, `in_air`, `gps`, `battery`, `home` | QGC 표시와 일치. 홈 `source: HOME_POSITION` | |
 | A9 | 거절: 지상(disarmed) 상태에서 `/dispatch` (홈 근처 10 m, alt_rel 10) | 409, `reasons`에 `armed`, `in_air`, (Hold 아니면) `mode_hold`. **FC에 명령 미전송**(로그 `dispatch_validate`만, `dispatch_send` 없음) | |

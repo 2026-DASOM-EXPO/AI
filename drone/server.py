@@ -34,7 +34,7 @@ def create_app(cfg, controller, log):
 
     @app.middleware("http")
     async def log_requests(request: Request, call_next):
-        t0 = time.time()
+        t0 = time.monotonic()
         body = None
         if request.method == "POST":
             raw = await request.body()
@@ -42,7 +42,7 @@ def create_app(cfg, controller, log):
         resp = await call_next(request)
         log.write("http", method=request.method, path=request.url.path,
                   client=request.client.host if request.client else None,
-                  status=resp.status_code, body=body, ms=round((time.time() - t0) * 1000, 1),
+                  status=resp.status_code, body=body, ms=round((time.monotonic() - t0) * 1000, 1),
                   key_present=bool(request.headers.get("x-api-key")))
         return resp
 
