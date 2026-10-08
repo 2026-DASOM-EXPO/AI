@@ -1,0 +1,7 @@
+# 런타임 (Jetson: ~/drone_venv, Python 3.10). uvicorn[standard] 금지 (aarch64 빌드 위험)
+# 버전은 2026-10-08 Windows/Python 3.10.21·3.11.9 에서 테스트한 조합
+pymavlink==2.4.50
+pyserial==3.5
+fastapi==0.142.4
+uvicorn==0.54.0
+pyyaml>=5.4.1

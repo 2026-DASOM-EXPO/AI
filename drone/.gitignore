@@ -1,0 +1,7 @@
+.venv/
+__pycache__/
+.pytest_cache/
+logs/
+# API 키가 들어 있음
+config.yaml
+wheelhouse/

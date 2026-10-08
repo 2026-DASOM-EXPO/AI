@@ -1,0 +1,36 @@
+# drone/config.yaml 예시. config.yaml이 없으면 서버 첫 실행 시 기본값 + 랜덤 API 키로 생성된다.
+# 일부 키만 적어도 나머지는 기본값(drone/config.py DEFAULTS)으로 채워진다.
+http:
+  host: 0.0.0.0
+  port: 8100            # MediaMTX 8554/8889/8888/9997/8000/8001 회피
+api_key: ""             # 비우면 첫 실행 때 생성되어 콘솔에 출력
+mavlink:
+  connection: /dev/ttyTHS1   # SITL: udpin:0.0.0.0:14540
+  baud: 57600
+  source_system: 1
+  source_component: 191      # ONBOARD_COMPUTER. 255(GCS)는 QGC와 충돌하므로 금지
+  target_system: 1
+  target_component: 1        # AUTOPILOT1. 0 금지
+  heartbeat_timeout_s: 1.0
+  proto_probe_timeout_s: 3.0
+  ack_timeout_s: 2.0
+  stream_rates_hz:
+    HEARTBEAT: 2.0           # 1 Hz면 1 s 타임아웃과 경계가 겹쳐 link_ok가 깜빡일 수 있어 2 Hz 요청
+    GLOBAL_POSITION_INT: 5.0
+    GPS_RAW_INT: 2.0
+    SYS_STATUS: 1.0
+    EXTENDED_SYS_STATE: 2.0
+dispatch:                    # 시작값. 현장에서 조정 전제
+  speed_mps: 2.0
+  max_radius_from_home_m: 30.0
+  alt_rel_min_m: 3.0
+  alt_rel_max_m: 20.0
+  gps_min_fix: 3
+  gps_min_sats: 8
+  gps_max_hdop: 2.0
+  arrival_radius_m: 2.0
+  arrival_hold_s: 2.0
+  arrival_timeout_factor: 2.0
+  arrival_timeout_margin_s: 30.0
+  override_requires_airborne: true   # 프롭오프 지상 점검 때만 false
+  abort_also_pause: true
